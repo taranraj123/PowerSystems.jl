@@ -5769,8 +5769,15 @@
                     "name": "reservoirs",
                     "comment": "[`HydroReservoir`](@ref)(s) that this component is connected to",
                     "data_type": "Vector{HydroReservoir}",
-                    "null_value": "Device[]",
-                    "default": "Device[]"
+                    "null_value": "HydroReservoir[]",
+                    "default": "HydroReservoir[]"
+                },
+                {
+                    "name": "tail_reservoir",
+                    "comment": "[`HydroReservoir`](@ref)(s) that this component is connected to",
+                    "data_type": "Union{Nothing, HydroReservoir}",
+                    "null_value": "nothing",
+                    "default": "nothing"
                 },
                 {
                     "name": "services",
