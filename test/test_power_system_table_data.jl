@@ -299,6 +299,42 @@ end
     @assert isapprox(get_constant_term(cost_curve), 9.0, atol = 0.01)
 end
 
+@testset "Test quadratic heat rate parsing without output points" begin
+    # Test that generators with quadratic coefficients don't require output points
+    temp_dir = mktempdir()
+    try
+        # Minimal bus.csv
+        open(joinpath(temp_dir, "bus.csv"), "w") do f
+            println(f, "Bus ID,Area")
+            println(f, "1,1")
+        end
+
+        # gen.csv with quadratic heat rates but NO output points
+        open(joinpath(temp_dir, "gen.csv"), "w") do f
+            println(f, "GEN UID,Bus ID,PMax MW,PMin MW,Fuel Price \$/MMBTU,heat_rate_a0,heat_rate_a1,heat_rate_a2")
+            println(f, "test_gen,1,100.0,10.0,3.0,500.0,7.5,0.0005")
+        end
+
+        # Empty branch.csv (required)
+        open(joinpath(temp_dir, "branch.csv"), "w") do f
+            println(f, "UID")
+        end
+
+        # Parse system - should succeed without output points due to quadratic detection
+        data = PowerSystemTableData(temp_dir, 100.0, DESCRIPTORS)
+        sys = System(data)
+
+        # Verify generator was created with quadratic cost curve
+        gen = get_component(ThermalStandard, sys, "test_gen")
+        @test gen !== nothing
+        cost = get_operation_cost(gen)
+        curve = get_value_curve(get_variable(cost))
+        @test curve isa QuadraticCurve
+    finally
+        rm(temp_dir; recursive = true, force = true)
+    end
+end
+
 @testset "Test parsing with ThermalMultiStart generators" begin
     # Test that ThermalMultiStart generators parse correctly with multi-start costs
     # This exercises the multi-start cost fallback logic in make_thermal_generator_multistart
